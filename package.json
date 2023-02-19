@@ -1,6 +1,6 @@
 {
   "name": "@smiilliin/auth-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Auth API",
   "main": "dist/AuthAPI.js",
   "scripts": {
@@ -10,7 +10,11 @@
     "type": "git",
     "url": "git://github.com/smiilliin/auth-api"
   },
-  "keywords": [],
+  "keywords": [
+    "api",
+    "client",
+    "authentication"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {

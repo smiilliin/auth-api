@@ -1,4 +1,4 @@
-# authAPI - auth API
+# auth-api - auth API
 
 ## Usage
 

@@ -2,6 +2,7 @@ import assert from "assert";
 import dotenv from "dotenv";
 import { env } from "./env";
 import AuthAPI from "../src/AuthAPI";
+import { access } from "fs";
 
 dotenv.config({ path: ".test.env" });
 
@@ -10,7 +11,7 @@ describe(`AUTH`, async () => {
   let refreshToken: string;
 
   it(`Login`, async () => {
-    const refreshToken: string = await authAPI.login(env.id, env.password);
+    refreshToken = await authAPI.login(env.id, env.password);
     assert(refreshToken);
   });
   it(`Get Access Token`, async () => {

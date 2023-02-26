@@ -43,3 +43,17 @@ Renew refresh token
 const renewedRefreshToken: string = await authAPI.renewRefreshToken(refreshToken);
 console.log("[Refresh Token]", renewedRefreshToken);
 ```
+
+### TokenKeeper
+
+```typescript
+const tokenKeeper = new TokenKeeper(authAPI, refreshToken, accessToken);
+```
+
+### setTokenInterval
+
+Set the interval between refresh callbacks
+
+```typescript
+tokenKeeper.setTokenInterval(60 * 60 * 1000, 10 * 60 * 1000, 30 * 60 * 1000, 5 * 60 * 1000);
+```

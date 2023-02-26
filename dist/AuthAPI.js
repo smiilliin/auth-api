@@ -12,7 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.TokenKeeper = exports.AuthAPI = void 0;
 const crypto_1 = __importDefault(require("crypto"));
+const JwtParser_1 = require("./JwtParser");
 class AuthAPI {
     constructor(lang, host = "") {
         this.host = host;
@@ -135,4 +137,57 @@ class AuthAPI {
         });
     }
 }
-exports.default = AuthAPI;
+exports.AuthAPI = AuthAPI;
+class TokenKeeper {
+    constructor(authAPI, refreshToken, accessToken) {
+        this.authAPI = authAPI;
+        this.refreshToken = refreshToken;
+        this.accessToken = accessToken;
+    }
+    /**
+     * Set the interval between refresh callbacks
+     * @param refreshInterval Interval between refreshes of the refresh token
+     * @param accessInterval Interval between refreshes of the access token
+     * @param refreshCallInterval setInterval callback call interval
+     * @param accessCallInterval setInterval callback call interval
+     */
+    setTokenInterval(refreshInterval = 60 * 60 * 1000 /* One hour */, accessInterval = 10 * 60 * 1000 /* Ten minutes */, refreshCallInterval = 30 * 60 * 1000 /* Sixty minutes */, accessCallInterval = 5 * 60 * 1000 /* Five minutes */) {
+        const refreshRefreshToken = () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!this.refreshToken)
+                    return;
+                const refreshTokenPayload = (0, JwtParser_1.jwtParser)(this.refreshToken);
+                if (refreshTokenPayload && refreshTokenPayload.expires - Date.now() < refreshInterval) {
+                    this.refreshToken = yield this.authAPI.renewRefreshToken(this.refreshToken);
+                }
+            }
+            catch (err) {
+                console.error(err);
+            }
+        });
+        this.refreshInterval = setInterval(refreshRefreshToken, refreshCallInterval);
+        const refreshAccessToken = () => __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!this.accessToken || !this.refreshToken)
+                    return;
+                const accessTokenPayload = (0, JwtParser_1.jwtParser)(this.accessToken);
+                if (accessTokenPayload && accessTokenPayload.expires - Date.now() < accessInterval) {
+                    this.refreshToken = yield this.authAPI.getAccessToken(this.refreshToken);
+                }
+            }
+            catch (err) {
+                console.error(err);
+            }
+        });
+        this.accessInterval = setInterval(refreshAccessToken, accessCallInterval);
+        refreshRefreshToken();
+        refreshAccessToken();
+    }
+    release() {
+        if (this.refreshInterval)
+            clearInterval(this.refreshInterval);
+        if (this.accessInterval)
+            clearInterval(this.accessInterval);
+    }
+}
+exports.TokenKeeper = TokenKeeper;

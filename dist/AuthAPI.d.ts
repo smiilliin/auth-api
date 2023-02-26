@@ -1,3 +1,4 @@
+/// <reference types="node" />
 declare class AuthAPI {
     host: string;
     lang: string;
@@ -38,4 +39,21 @@ declare class AuthAPI {
      */
     renewRefreshToken(refreshToken: string): Promise<string>;
 }
-export default AuthAPI;
+declare class TokenKeeper {
+    authAPI: AuthAPI;
+    refreshToken: string;
+    accessToken: string;
+    refreshInterval: NodeJS.Timer | undefined;
+    accessInterval: NodeJS.Timer | undefined;
+    constructor(authAPI: AuthAPI, refreshToken: string, accessToken: string);
+    /**
+     * Set the interval between refresh callbacks
+     * @param refreshInterval Interval between refreshes of the refresh token
+     * @param accessInterval Interval between refreshes of the access token
+     * @param refreshCallInterval setInterval callback call interval
+     * @param accessCallInterval setInterval callback call interval
+     */
+    setTokenInterval(refreshInterval?: number, accessInterval?: number, refreshCallInterval?: number, accessCallInterval?: number): void;
+    release(): void;
+}
+export { AuthAPI, TokenKeeper };

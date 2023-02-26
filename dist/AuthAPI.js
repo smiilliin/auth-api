@@ -70,6 +70,7 @@ class AuthAPI {
         return __awaiter(this, void 0, void 0, function* () {
             const data = yield this.fetchWithStrings("/login/", {
                 method: "POST",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -92,6 +93,7 @@ class AuthAPI {
         return __awaiter(this, void 0, void 0, function* () {
             const data = yield this.fetchWithStrings("/signup/", {
                 method: "POST",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -129,6 +131,7 @@ class AuthAPI {
         return __awaiter(this, void 0, void 0, function* () {
             const data = yield this.fetchWithStrings("/refresh-token/", {
                 method: "GET",
+                credentials: "include",
                 headers: {
                     Authorization: refreshToken,
                 },

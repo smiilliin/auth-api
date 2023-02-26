@@ -76,6 +76,7 @@ class AuthAPI {
   async login(id: string, password: string): Promise<string> {
     const data = await this.fetchWithStrings("/login/", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -96,6 +97,7 @@ class AuthAPI {
   async signup(id: string, password: string, g_response: string): Promise<string> {
     const data = await this.fetchWithStrings("/signup/", {
       method: "POST",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -129,6 +131,7 @@ class AuthAPI {
   async renewRefreshToken(refreshToken: string): Promise<string> {
     const data = await this.fetchWithStrings("/refresh-token/", {
       method: "GET",
+      credentials: "include",
       headers: {
         Authorization: refreshToken,
       },

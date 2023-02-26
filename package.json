@@ -1,6 +1,6 @@
 {
   "name": "@smiilliin/auth-api",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Auth API",
   "main": "dist/AuthAPI.js",
   "scripts": {

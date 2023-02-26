@@ -152,7 +152,7 @@ class TokenKeeper {
   }
 
   /**
-   *
+   * Set the interval between refresh callbacks
    * @param refreshInterval Interval between refreshes of the refresh token
    * @param accessInterval Interval between refreshes of the access token
    * @param refreshCallInterval setInterval callback call interval

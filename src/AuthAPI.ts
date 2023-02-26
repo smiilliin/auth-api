@@ -1,7 +1,19 @@
 import crypto from "crypto";
+import { jwtParser } from "./JwtParser";
 
 interface IError {
   reason: string;
+}
+interface IToken {
+  type: string;
+  expires: number;
+}
+interface IRefreshToken extends IToken {
+  id: string;
+  generation: number;
+}
+interface IAccessToken extends IToken {
+  id: string;
 }
 
 class AuthAPI {
@@ -125,4 +137,70 @@ class AuthAPI {
   }
 }
 
-export default AuthAPI;
+class TokenKeeper {
+  authAPI: AuthAPI;
+  refreshToken: string;
+  accessToken: string;
+
+  refreshInterval: NodeJS.Timer | undefined;
+  accessInterval: NodeJS.Timer | undefined;
+
+  constructor(authAPI: AuthAPI, refreshToken: string, accessToken: string) {
+    this.authAPI = authAPI;
+    this.refreshToken = refreshToken;
+    this.accessToken = accessToken;
+  }
+
+  /**
+   *
+   * @param refreshInterval Interval between refreshes of the refresh token
+   * @param accessInterval Interval between refreshes of the access token
+   * @param refreshCallInterval setInterval callback call interval
+   * @param accessCallInterval setInterval callback call interval
+   */
+  setTokenInterval(
+    refreshInterval: number = 60 * 60 * 1000 /* One hour */,
+    accessInterval: number = 10 * 60 * 1000 /* Ten minutes */,
+    refreshCallInterval: number = 30 * 60 * 1000 /* Sixty minutes */,
+    accessCallInterval: number = 5 * 60 * 1000 /* Five minutes */
+  ) {
+    const refreshRefreshToken = async () => {
+      try {
+        if (!this.refreshToken) return;
+        const refreshTokenPayload = jwtParser(this.refreshToken) as IRefreshToken;
+
+        if (refreshTokenPayload && refreshTokenPayload.expires - Date.now() < refreshInterval) {
+          this.refreshToken = await this.authAPI.renewRefreshToken(this.refreshToken);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    this.refreshInterval = setInterval(refreshRefreshToken, refreshCallInterval);
+
+    const refreshAccessToken = async () => {
+      try {
+        if (!this.accessToken || !this.refreshToken) return;
+        const accessTokenPayload = jwtParser(this.accessToken) as IAccessToken;
+
+        if (accessTokenPayload && accessTokenPayload.expires - Date.now() < accessInterval) {
+          this.refreshToken = await this.authAPI.getAccessToken(this.refreshToken);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    this.accessInterval = setInterval(refreshAccessToken, accessCallInterval);
+
+    refreshRefreshToken();
+    refreshAccessToken();
+  }
+  release() {
+    if (this.refreshInterval) clearInterval(this.refreshInterval);
+    if (this.accessInterval) clearInterval(this.accessInterval);
+  }
+}
+
+export { AuthAPI, TokenKeeper };

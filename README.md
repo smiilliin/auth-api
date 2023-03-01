@@ -57,3 +57,23 @@ Set the interval between refresh callbacks
 ```typescript
 tokenKeeper.setTokenInterval(60 * 60 * 1000, 10 * 60 * 1000, 30 * 60 * 1000, 5 * 60 * 1000);
 ```
+
+### watchRefreshToken
+
+Watch if the refresh token changed
+
+```typescript
+tokenKeeper.watchRefreshToken = (refreshToken: string) => {
+  console.log(refreshToken);
+};
+```
+
+### watchAccessToken
+
+Watch if the access token changed
+
+```typescript
+tokenKeeper.watchAccessToken = (accessToken: string) => {
+  console.log(accessToken);
+};
+```

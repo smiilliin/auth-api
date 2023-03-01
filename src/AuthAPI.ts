@@ -142,13 +142,16 @@ class AuthAPI {
 
 class TokenKeeper {
   authAPI: AuthAPI;
-  refreshToken: string;
-  accessToken: string;
+  refreshToken?: string;
+  accessToken?: string;
 
-  refreshInterval: NodeJS.Timer | undefined;
-  accessInterval: NodeJS.Timer | undefined;
+  refreshInterval?: NodeJS.Timer;
+  accessInterval?: NodeJS.Timer;
 
-  constructor(authAPI: AuthAPI, refreshToken: string, accessToken: string) {
+  watchRefreshToken: ((refreshToken: string) => void) | undefined;
+  watchAccessToken: ((accessToken: string) => void) | undefined;
+
+  constructor(authAPI: AuthAPI, refreshToken?: string, accessToken?: string) {
     this.authAPI = authAPI;
     this.refreshToken = refreshToken;
     this.accessToken = accessToken;
@@ -161,7 +164,7 @@ class TokenKeeper {
    * @param refreshCallInterval setInterval callback call interval
    * @param accessCallInterval setInterval callback call interval
    */
-  setTokenInterval(
+  async setTokenInterval(
     refreshInterval: number = 60 * 60 * 1000 /* One hour */,
     accessInterval: number = 10 * 60 * 1000 /* Ten minutes */,
     refreshCallInterval: number = 30 * 60 * 1000 /* Sixty minutes */,
@@ -174,6 +177,7 @@ class TokenKeeper {
 
         if (refreshTokenPayload && refreshTokenPayload.expires - Date.now() < refreshInterval) {
           this.refreshToken = await this.authAPI.renewRefreshToken(this.refreshToken);
+          if (this.watchRefreshToken) this.watchRefreshToken(this.refreshToken);
         }
       } catch (err) {
         console.error(err);
@@ -188,7 +192,8 @@ class TokenKeeper {
         const accessTokenPayload = jwtParser(this.accessToken) as IAccessToken;
 
         if (accessTokenPayload && accessTokenPayload.expires - Date.now() < accessInterval) {
-          this.refreshToken = await this.authAPI.getAccessToken(this.refreshToken);
+          this.accessToken = await this.authAPI.getAccessToken(this.refreshToken);
+          if (this.watchAccessToken) this.watchAccessToken(this.accessToken);
         }
       } catch (err) {
         console.error(err);
@@ -197,8 +202,8 @@ class TokenKeeper {
 
     this.accessInterval = setInterval(refreshAccessToken, accessCallInterval);
 
-    refreshRefreshToken();
-    refreshAccessToken();
+    await refreshRefreshToken();
+    await refreshAccessToken();
   }
   release() {
     if (this.refreshInterval) clearInterval(this.refreshInterval);

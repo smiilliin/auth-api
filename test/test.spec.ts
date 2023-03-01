@@ -3,47 +3,58 @@ import dotenv from "dotenv";
 import { env } from "./env";
 import { AuthAPI, TokenKeeper } from "../src/AuthAPI";
 
-dotenv.config({ path: ".test.env" });
-
 const authAPI = new AuthAPI(env.lang, env.host);
-let refreshToken: string;
-let accessToken: string;
-describe(`AutAPI`, () => {
+const tokenKeeper = new TokenKeeper(authAPI);
+
+describe(`AuthAPI`, () => {
   it(`Login`, async () => {
-    refreshToken = await authAPI.login(env.id, env.password);
+    const refreshToken = await authAPI.login(env.id, env.password);
+    tokenKeeper.refreshToken = refreshToken;
     assert(refreshToken);
   });
-  it(`Get Access Token`, async () => {
-    accessToken = await authAPI.getAccessToken(refreshToken);
+  it(`Get access token`, async () => {
+    if (!tokenKeeper.refreshToken) assert(false);
+
+    const accessToken = await authAPI.getAccessToken(tokenKeeper.refreshToken);
+    tokenKeeper.accessToken = accessToken;
     assert(accessToken);
   });
-  it(`Renew Refresh Token`, async () => {
-    const renewedRefreshToken: string = await authAPI.renewRefreshToken(refreshToken);
-    assert(renewedRefreshToken);
+  it(`Renew refresh token`, async () => {
+    if (!tokenKeeper.refreshToken) assert(false);
+
+    tokenKeeper.refreshToken = await authAPI.renewRefreshToken(tokenKeeper.refreshToken);
+    assert(tokenKeeper.refreshToken);
   });
 });
-
-const sleep = async (ms) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
-
 describe(`TokenKeeper`, () => {
-  const tokenKeeper = new TokenKeeper(authAPI, refreshToken, accessToken);
-  const oldRefreshToken = refreshToken;
-  const oldAccessToken = accessToken;
+  let oldRefreshToken: string;
+  let oldAccessToken: string;
 
-  tokenKeeper.setTokenInterval(Infinity, Infinity);
+  it(`Set old tokens`, () => {
+    oldRefreshToken = tokenKeeper.refreshToken as string;
+    oldAccessToken = tokenKeeper.accessToken as string;
+  });
+  it(`Watch tokens`, async () => {
+    let refreshedRefreshToken: boolean = false;
+    let refreshedAccessToken: boolean = false;
 
-  it(`Sleep for a refresh`, async () => {
-    await sleep(1000);
-    assert(true);
+    tokenKeeper.watchRefreshToken = () => {
+      refreshedRefreshToken = true;
+    };
+    tokenKeeper.watchAccessToken = () => {
+      refreshedAccessToken = true;
+    };
+
+    await tokenKeeper.setTokenInterval(Infinity, Infinity);
+
+    assert(refreshedRefreshToken && refreshedAccessToken);
   });
 
   it(`Check if renewed refresh token`, () => {
-    assert(oldRefreshToken !== refreshToken);
+    assert(oldRefreshToken !== tokenKeeper.refreshToken);
   });
   it(`Check if renewed access token`, () => {
-    assert(oldAccessToken !== accessToken);
+    assert(oldAccessToken !== tokenKeeper.accessToken);
   });
 
   it(`Release`, () => {

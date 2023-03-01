@@ -41,11 +41,13 @@ declare class AuthAPI {
 }
 declare class TokenKeeper {
     authAPI: AuthAPI;
-    refreshToken: string;
-    accessToken: string;
-    refreshInterval: NodeJS.Timer | undefined;
-    accessInterval: NodeJS.Timer | undefined;
-    constructor(authAPI: AuthAPI, refreshToken: string, accessToken: string);
+    refreshToken?: string;
+    accessToken?: string;
+    refreshInterval?: NodeJS.Timer;
+    accessInterval?: NodeJS.Timer;
+    watchRefreshToken: ((refreshToken: string) => void) | undefined;
+    watchAccessToken: ((accessToken: string) => void) | undefined;
+    constructor(authAPI: AuthAPI, refreshToken?: string, accessToken?: string);
     /**
      * Set the interval between refresh callbacks
      * @param refreshInterval Interval between refreshes of the refresh token
@@ -53,7 +55,7 @@ declare class TokenKeeper {
      * @param refreshCallInterval setInterval callback call interval
      * @param accessCallInterval setInterval callback call interval
      */
-    setTokenInterval(refreshInterval?: number, accessInterval?: number, refreshCallInterval?: number, accessCallInterval?: number): void;
+    setTokenInterval(refreshInterval?: number, accessInterval?: number, refreshCallInterval?: number, accessCallInterval?: number): Promise<void>;
     release(): void;
 }
 export { AuthAPI, TokenKeeper };

@@ -155,36 +155,42 @@ class TokenKeeper {
      * @param accessCallInterval setInterval callback call interval
      */
     setTokenInterval(refreshInterval = 60 * 60 * 1000 /* One hour */, accessInterval = 10 * 60 * 1000 /* Ten minutes */, refreshCallInterval = 30 * 60 * 1000 /* Sixty minutes */, accessCallInterval = 5 * 60 * 1000 /* Five minutes */) {
-        const refreshRefreshToken = () => __awaiter(this, void 0, void 0, function* () {
-            try {
-                if (!this.refreshToken)
-                    return;
-                const refreshTokenPayload = (0, JwtParser_1.jwtParser)(this.refreshToken);
-                if (refreshTokenPayload && refreshTokenPayload.expires - Date.now() < refreshInterval) {
-                    this.refreshToken = yield this.authAPI.renewRefreshToken(this.refreshToken);
+        return __awaiter(this, void 0, void 0, function* () {
+            const refreshRefreshToken = () => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    if (!this.refreshToken)
+                        return;
+                    const refreshTokenPayload = (0, JwtParser_1.jwtParser)(this.refreshToken);
+                    if (refreshTokenPayload && refreshTokenPayload.expires - Date.now() < refreshInterval) {
+                        this.refreshToken = yield this.authAPI.renewRefreshToken(this.refreshToken);
+                        if (this.watchRefreshToken)
+                            this.watchRefreshToken(this.refreshToken);
+                    }
                 }
-            }
-            catch (err) {
-                console.error(err);
-            }
-        });
-        this.refreshInterval = setInterval(refreshRefreshToken, refreshCallInterval);
-        const refreshAccessToken = () => __awaiter(this, void 0, void 0, function* () {
-            try {
-                if (!this.accessToken || !this.refreshToken)
-                    return;
-                const accessTokenPayload = (0, JwtParser_1.jwtParser)(this.accessToken);
-                if (accessTokenPayload && accessTokenPayload.expires - Date.now() < accessInterval) {
-                    this.refreshToken = yield this.authAPI.getAccessToken(this.refreshToken);
+                catch (err) {
+                    console.error(err);
                 }
-            }
-            catch (err) {
-                console.error(err);
-            }
+            });
+            this.refreshInterval = setInterval(refreshRefreshToken, refreshCallInterval);
+            const refreshAccessToken = () => __awaiter(this, void 0, void 0, function* () {
+                try {
+                    if (!this.accessToken || !this.refreshToken)
+                        return;
+                    const accessTokenPayload = (0, JwtParser_1.jwtParser)(this.accessToken);
+                    if (accessTokenPayload && accessTokenPayload.expires - Date.now() < accessInterval) {
+                        this.accessToken = yield this.authAPI.getAccessToken(this.refreshToken);
+                        if (this.watchAccessToken)
+                            this.watchAccessToken(this.accessToken);
+                    }
+                }
+                catch (err) {
+                    console.error(err);
+                }
+            });
+            this.accessInterval = setInterval(refreshAccessToken, accessCallInterval);
+            yield refreshRefreshToken();
+            yield refreshAccessToken();
         });
-        this.accessInterval = setInterval(refreshAccessToken, accessCallInterval);
-        refreshRefreshToken();
-        refreshAccessToken();
     }
     release() {
         if (this.refreshInterval)

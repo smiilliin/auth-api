@@ -23,7 +23,17 @@ class AuthAPI {
             UNKNOWN_ERROR: "An unknown error has occurred.",
         };
         fetch(`${this.host}/strings/${lang}.json`)
-            .then((res) => res.json())
+            .catch((err) => {
+            console.error(err);
+            throw new Error();
+        })
+            .then((res) => {
+            var _a;
+            if ((_a = res.headers.get("content-type")) === null || _a === void 0 ? void 0 : _a.includes("application/json"))
+                return res.json();
+            else
+                throw new Error();
+        })
             .then((data) => {
             this.strings = data;
         });
@@ -37,26 +47,31 @@ class AuthAPI {
     fetchWithStrings(path, option) {
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            const res = yield fetch(`${this.host}${path}`, option);
-            let data;
-            if ((_a = res.headers.get("content-type")) === null || _a === void 0 ? void 0 : _a.includes("application/json")) {
-                data = yield res.json();
-            }
-            else {
-                data = {
-                    reason: "UNKNOWN_ERROR",
-                };
-            }
-            if (res.status !== 200) {
-                const { reason } = data;
-                const reasonText = this.strings[reason];
-                if (!reasonText) {
-                    throw new Error(this.strings["UNKNOWN_ERROR"]);
+            try {
+                const res = yield fetch(`${this.host}${path}`, option);
+                let data;
+                if ((_a = res.headers.get("content-type")) === null || _a === void 0 ? void 0 : _a.includes("application/json")) {
+                    data = yield res.json();
                 }
-                throw new Error(this.strings[reason]);
+                else {
+                    data = {
+                        reason: "UNKNOWN_ERROR",
+                    };
+                }
+                if (res.status !== 200) {
+                    const { reason } = data;
+                    const reasonText = this.strings[reason];
+                    if (!reasonText) {
+                        throw new Error(this.strings["UNKNOWN_ERROR"]);
+                    }
+                    throw new Error(this.strings[reason]);
+                }
+                else {
+                    return data;
+                }
             }
-            else {
-                return data;
+            catch (_b) {
+                throw new Error(this.strings["UNKNOWN_ERROR"]);
             }
         });
     }

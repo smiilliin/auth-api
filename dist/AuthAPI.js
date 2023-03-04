@@ -23,19 +23,16 @@ class AuthAPI {
             UNKNOWN_ERROR: "An unknown error has occurred.",
         };
         fetch(`${this.host}/strings/${lang}.json`)
-            .catch((err) => {
-            console.error(err);
-            throw new Error();
-        })
             .then((res) => {
             var _a;
-            if ((_a = res.headers.get("content-type")) === null || _a === void 0 ? void 0 : _a.includes("application/json"))
-                return res.json();
-            else
-                throw new Error();
+            if ((_a = res.headers.get("content-type")) === null || _a === void 0 ? void 0 : _a.includes("application/json")) {
+                res.json().then((data) => {
+                    this.strings = data;
+                });
+            }
         })
-            .then((data) => {
-            this.strings = data;
+            .catch((err) => {
+            console.error(err);
         });
     }
     /**

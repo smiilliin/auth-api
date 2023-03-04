@@ -72,8 +72,12 @@ class AuthAPI {
       } else {
         return data;
       }
-    } catch {
-      throw new Error(this.strings["UNKNOWN_ERROR"]);
+    } catch (err: any) {
+      if (err.message) {
+        throw new Error(err.message);
+      } else {
+        throw new Error(this.strings["UNKNOWN_ERROR"]);
+      }
     }
   }
 

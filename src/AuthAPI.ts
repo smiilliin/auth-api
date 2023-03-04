@@ -29,16 +29,15 @@ class AuthAPI {
     };
 
     fetch(`${this.host}/strings/${lang}.json`)
+      .then((res) => {
+        if (res.headers.get("content-type")?.includes("application/json")) {
+          res.json().then((data) => {
+            this.strings = data;
+          });
+        }
+      })
       .catch((err) => {
         console.error(err);
-        throw new Error();
-      })
-      .then((res) => {
-        if (res.headers.get("content-type")?.includes("application/json")) return res.json();
-        else throw new Error();
-      })
-      .then((data) => {
-        this.strings = data;
       });
   }
   /**

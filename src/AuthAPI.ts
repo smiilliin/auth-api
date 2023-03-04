@@ -29,7 +29,14 @@ class AuthAPI {
     };
 
     fetch(`${this.host}/strings/${lang}.json`)
-      .then((res) => res.json())
+      .catch((err) => {
+        console.error(err);
+        throw new Error();
+      })
+      .then((res) => {
+        if (res.headers.get("content-type")?.includes("application/json")) return res.json();
+        else throw new Error();
+      })
       .then((data) => {
         this.strings = data;
       });
@@ -41,29 +48,33 @@ class AuthAPI {
    * @returns response data or UNKNOWN ERROR
    */
   private async fetchWithStrings(path: string, option: RequestInit): Promise<IError | any> {
-    const res = await fetch(`${this.host}${path}`, option);
-    let data: IError | any;
+    try {
+      const res = await fetch(`${this.host}${path}`, option);
+      let data: IError | any;
 
-    if (res.headers.get("content-type")?.includes("application/json")) {
-      data = await res.json();
-    } else {
-      data = {
-        reason: "UNKNOWN_ERROR",
-      };
-    }
-
-    if (res.status !== 200) {
-      const { reason } = data as IError;
-
-      const reasonText = this.strings[reason];
-
-      if (!reasonText) {
-        throw new Error(this.strings["UNKNOWN_ERROR"]);
+      if (res.headers.get("content-type")?.includes("application/json")) {
+        data = await res.json();
+      } else {
+        data = {
+          reason: "UNKNOWN_ERROR",
+        };
       }
 
-      throw new Error(this.strings[reason]);
-    } else {
-      return data;
+      if (res.status !== 200) {
+        const { reason } = data as IError;
+
+        const reasonText = this.strings[reason];
+
+        if (!reasonText) {
+          throw new Error(this.strings["UNKNOWN_ERROR"]);
+        }
+
+        throw new Error(this.strings[reason]);
+      } else {
+        return data;
+      }
+    } catch {
+      throw new Error(this.strings["UNKNOWN_ERROR"]);
     }
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "@smiilliin/auth-api",
-  "version": "1.1.9",
+  "version": "1.2.0",
   "description": "Auth API",
   "main": "dist/AuthAPI.js",
   "scripts": {
@@ -18,13 +18,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "crypto": "^1.0.1"
+    "crypto": "^1.0.1",
+    "fetchstrings": "^1.0.6"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",
-    "typescript": "^4.9.5",
     "@types/node": "^18.14.0",
     "dotenv": "^16.0.3",
-    "ts-mocha": "^10.0.0"
+    "ts-mocha": "^10.0.0",
+    "typescript": "^4.9.5"
   }
 }

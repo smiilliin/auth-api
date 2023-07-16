@@ -4,8 +4,18 @@
 
 ### AuthAPI
 
+Initialize AuthAPI class
+
 ```typescript
-const authAPI = new AuthAPI("en", "https://smiilliin.site");
+const authAPI = new AuthAPI("https://smiilliin.com/api");
+```
+
+### Load
+
+Load fetchstrings
+
+```typescript
+await authAPI.load("en");
 ```
 
 ### login

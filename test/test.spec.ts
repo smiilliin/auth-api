@@ -1,17 +1,19 @@
 import assert from "assert";
-import dotenv from "dotenv";
 import { env } from "./env";
 import { AuthAPI, TokenKeeper } from "../src/AuthAPI";
 
-const authAPI = new AuthAPI(env.lang, env.host);
+const authAPI = new AuthAPI(env.host);
 const tokenKeeper = new TokenKeeper(authAPI);
 
 describe(`AuthAPI`, () => {
+  it("Initialize AuthAPI", async () => {
+    await authAPI.load(env.lang);
+  });
   it(`Login`, async () => {
     const refreshToken = await authAPI.login(env.id, env.password);
     tokenKeeper.refreshToken = refreshToken;
     assert(refreshToken);
-  });
+  }).timeout(3000);
   it(`Get access token`, async () => {
     if (!tokenKeeper.refreshToken) assert(false);
 

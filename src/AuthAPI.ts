@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { jwtParser } from "./JwtParser";
+import FetchStrings, { BaseAPI } from "fetchstrings";
 
 interface IError {
   reason: string;
@@ -16,71 +17,7 @@ interface IAccessToken extends IToken {
   id: string;
 }
 
-class AuthAPI {
-  host: string;
-  lang: string;
-  strings: any;
-
-  constructor(lang: string, host: string = "") {
-    this.host = host;
-    this.lang = lang;
-    this.strings = {
-      UNKNOWN_ERROR: "An unknown error has occurred.",
-    };
-
-    fetch(`${this.host}/strings/${lang}.json`)
-      .then((res) => {
-        if (res.headers.get("content-type")?.includes("application/json")) {
-          res.json().then((data) => {
-            this.strings = data;
-          });
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }
-  /**
-   * Fetch with response strings
-   * @param path Request path
-   * @param option Request option
-   * @returns response data or UNKNOWN ERROR
-   */
-  private async fetchWithStrings(path: string, option: RequestInit): Promise<IError | any> {
-    try {
-      const res = await fetch(`${this.host}${path}`, option);
-      let data: IError | any;
-
-      if (res.headers.get("content-type")?.includes("application/json")) {
-        data = await res.json();
-      } else {
-        data = {
-          reason: "UNKNOWN_ERROR",
-        };
-      }
-
-      if (res.status !== 200) {
-        const { reason } = data as IError;
-
-        const reasonText = this.strings[reason];
-
-        if (!reasonText) {
-          throw new Error(this.strings["UNKNOWN_ERROR"]);
-        }
-
-        throw new Error(this.strings[reason]);
-      } else {
-        return data;
-      }
-    } catch (err: any) {
-      if (err.message) {
-        throw new Error(err.message);
-      } else {
-        throw new Error(this.strings["UNKNOWN_ERROR"]);
-      }
-    }
-  }
-
+class AuthAPI extends BaseAPI {
   /**
    * Login with id and password
    * @param id id
@@ -88,17 +25,19 @@ class AuthAPI {
    * @returns Refresh token
    */
   async login(id: string, password: string): Promise<string> {
-    const data = await this.fetchWithStrings("/login/", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const data = await this.post(
+      "/login",
+      {
         id: id,
         password: crypto.createHash("sha256").update(Buffer.from(password, "utf-8")).digest("hex"),
-      }),
-    });
+      },
+      {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     return data["refresh-token"];
   }
   /**
@@ -109,18 +48,20 @@ class AuthAPI {
    * @returns Refresh token
    */
   async signup(id: string, password: string, g_response: string): Promise<string> {
-    const data = await this.fetchWithStrings("/signup/", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const data = await this.post(
+      "/signup",
+      {
         id: id,
         password: crypto.createHash("sha256").update(Buffer.from(password, "utf-8")).digest("hex"),
         g_response: g_response,
-      }),
-    });
+      },
+      {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     return data["refresh-token"];
   }
   /**
@@ -129,12 +70,15 @@ class AuthAPI {
    * @returns Access token
    */
   async getAccessToken(refreshToken: string): Promise<string> {
-    const data = await this.fetchWithStrings("/access-token/", {
-      method: "GET",
-      headers: {
-        Authorization: refreshToken,
-      },
-    });
+    const data = await this.get(
+      "/access-token",
+      {},
+      {
+        headers: {
+          Authorization: refreshToken,
+        },
+      }
+    );
     return data["access-token"];
   }
   /**
@@ -143,13 +87,15 @@ class AuthAPI {
    * @returns Renewed refresh token
    */
   async renewRefreshToken(refreshToken: string): Promise<string> {
-    const data = await this.fetchWithStrings("/refresh-token/", {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        Authorization: refreshToken,
-      },
-    });
+    const data = await this.get(
+      "/refresh-token",
+      {},
+      {
+        headers: {
+          Authorization: refreshToken,
+        },
+      }
+    );
     return data["refresh-token"];
   }
 }

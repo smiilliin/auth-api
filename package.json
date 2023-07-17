@@ -1,6 +1,6 @@
 {
   "name": "@smiilliin/auth-api",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Auth API",
   "main": "dist/AuthAPI.js",
   "scripts": {
@@ -19,7 +19,7 @@
   "license": "ISC",
   "dependencies": {
     "crypto": "^1.0.1",
-    "fetchstrings": "^1.0.6"
+    "fetchstrings": "^1.0.7"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",

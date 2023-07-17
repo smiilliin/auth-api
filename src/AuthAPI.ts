@@ -109,8 +109,8 @@ class AuthAPI extends BaseAPI {
 
 class TokenKeeper {
   authAPI: AuthAPI;
-  refreshToken?: string;
-  accessToken?: string;
+  refreshToken: string;
+  accessToken: string;
 
   refreshInterval?: NodeJS.Timer;
   accessInterval?: NodeJS.Timer;
@@ -118,7 +118,7 @@ class TokenKeeper {
   watchRefreshToken: ((refreshToken: string) => void) | undefined;
   watchAccessToken: ((accessToken: string) => void) | undefined;
 
-  constructor(authAPI: AuthAPI, refreshToken?: string, accessToken?: string) {
+  constructor(authAPI: AuthAPI, refreshToken: string, accessToken: string) {
     this.authAPI = authAPI;
     this.refreshToken = refreshToken;
     this.accessToken = accessToken;
@@ -139,7 +139,6 @@ class TokenKeeper {
   ) {
     const refreshRefreshToken = async () => {
       try {
-        if (!this.refreshToken) return;
         const refreshTokenPayload = jwtParser(
           this.refreshToken
         ) as IRefreshToken;
@@ -165,7 +164,6 @@ class TokenKeeper {
 
     const refreshAccessToken = async () => {
       try {
-        if (!this.accessToken || !this.refreshToken) return;
         const accessTokenPayload = jwtParser(this.accessToken) as IAccessToken;
 
         if (

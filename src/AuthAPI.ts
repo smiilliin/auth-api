@@ -1,10 +1,7 @@
 import crypto from "crypto";
 import { jwtParser } from "./JwtParser";
-import FetchStrings, { BaseAPI } from "fetchstrings";
+import { BaseAPI } from "fetchstrings";
 
-interface IError {
-  reason: string;
-}
 interface IToken {
   type: string;
   expires: number;
@@ -29,7 +26,10 @@ class AuthAPI extends BaseAPI {
       "/login",
       {
         id: id,
-        password: crypto.createHash("sha256").update(Buffer.from(password, "utf-8")).digest("hex"),
+        password: crypto
+          .createHash("sha256")
+          .update(Buffer.from(password, "utf-8"))
+          .digest("hex"),
       },
       {
         credentials: "include",
@@ -47,12 +47,19 @@ class AuthAPI extends BaseAPI {
    * @param g_response google recaptcha response
    * @returns Refresh token
    */
-  async signup(id: string, password: string, g_response: string): Promise<string> {
+  async signup(
+    id: string,
+    password: string,
+    g_response: string
+  ): Promise<string> {
     const data = await this.post(
       "/signup",
       {
         id: id,
-        password: crypto.createHash("sha256").update(Buffer.from(password, "utf-8")).digest("hex"),
+        password: crypto
+          .createHash("sha256")
+          .update(Buffer.from(password, "utf-8"))
+          .digest("hex"),
         g_response: g_response,
       },
       {
@@ -133,10 +140,17 @@ class TokenKeeper {
     const refreshRefreshToken = async () => {
       try {
         if (!this.refreshToken) return;
-        const refreshTokenPayload = jwtParser(this.refreshToken) as IRefreshToken;
+        const refreshTokenPayload = jwtParser(
+          this.refreshToken
+        ) as IRefreshToken;
 
-        if (refreshTokenPayload && refreshTokenPayload.expires - Date.now() < refreshInterval) {
-          this.refreshToken = await this.authAPI.renewRefreshToken(this.refreshToken);
+        if (
+          refreshTokenPayload &&
+          refreshTokenPayload.expires - Date.now() < refreshInterval
+        ) {
+          this.refreshToken = await this.authAPI.renewRefreshToken(
+            this.refreshToken
+          );
           if (this.watchRefreshToken) this.watchRefreshToken(this.refreshToken);
         }
       } catch (err) {
@@ -144,15 +158,23 @@ class TokenKeeper {
       }
     };
 
-    this.refreshInterval = setInterval(refreshRefreshToken, refreshCallInterval);
+    this.refreshInterval = setInterval(
+      refreshRefreshToken,
+      refreshCallInterval
+    );
 
     const refreshAccessToken = async () => {
       try {
         if (!this.accessToken || !this.refreshToken) return;
         const accessTokenPayload = jwtParser(this.accessToken) as IAccessToken;
 
-        if (accessTokenPayload && accessTokenPayload.expires - Date.now() < accessInterval) {
-          this.accessToken = await this.authAPI.getAccessToken(this.refreshToken);
+        if (
+          accessTokenPayload &&
+          accessTokenPayload.expires - Date.now() < accessInterval
+        ) {
+          this.accessToken = await this.authAPI.getAccessToken(
+            this.refreshToken
+          );
           if (this.watchAccessToken) this.watchAccessToken(this.accessToken);
         }
       } catch (err) {

@@ -19,9 +19,14 @@ class AuthAPI extends BaseAPI {
    * Login with id and password
    * @param id id
    * @param password password
+   * @param keepLoggedin keep logged in
    * @returns Refresh token
    */
-  async login(id: string, password: string): Promise<string> {
+  async login(
+    id: string,
+    password: string,
+    keepLoggedin?: boolean
+  ): Promise<string> {
     const data = await this.post(
       "/login",
       {
@@ -30,6 +35,7 @@ class AuthAPI extends BaseAPI {
           .createHash("sha256")
           .update(Buffer.from(password, "utf-8"))
           .digest("hex"),
+        keepLoggedin: keepLoggedin,
       },
       {
         credentials: "include",
@@ -45,12 +51,14 @@ class AuthAPI extends BaseAPI {
    * @param id id
    * @param password password
    * @param g_response google recaptcha response
+   * @param keepLoggedin keep logged in
    * @returns Refresh token
    */
   async signup(
     id: string,
     password: string,
-    g_response: string
+    g_response: string,
+    keepLoggedin?: boolean
   ): Promise<string> {
     const data = await this.post(
       "/signup",
@@ -61,6 +69,7 @@ class AuthAPI extends BaseAPI {
           .update(Buffer.from(password, "utf-8"))
           .digest("hex"),
         g_response: g_response,
+        keepLoggedin: keepLoggedin,
       },
       {
         credentials: "include",
@@ -76,10 +85,13 @@ class AuthAPI extends BaseAPI {
    * @param refreshToken Refresh token
    * @returns Access token
    */
-  async getAccessToken(refreshToken: string): Promise<string> {
+  async getAccessToken(
+    refreshToken: string,
+    keepLoggedin?: boolean
+  ): Promise<string> {
     const data = await this.get(
       "/access-token",
-      {},
+      { keepLoggedin: keepLoggedin },
       {
         headers: {
           Authorization: refreshToken,
@@ -91,12 +103,16 @@ class AuthAPI extends BaseAPI {
   /**
    * Renew refresh token
    * @param refreshToken Refresh token
+   * @param keepLoggedin keep logged in
    * @returns Renewed refresh token
    */
-  async renewRefreshToken(refreshToken: string): Promise<string> {
+  async renewRefreshToken(
+    refreshToken: string,
+    keepLoggedin?: boolean
+  ): Promise<string> {
     const data = await this.get(
       "/refresh-token",
-      {},
+      { keepLoggedin: keepLoggedin },
       {
         headers: {
           Authorization: refreshToken,

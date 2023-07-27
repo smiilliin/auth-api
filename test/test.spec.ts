@@ -1,37 +1,46 @@
 import assert from "assert";
 import { env } from "./env";
 import { AuthAPI, TokenKeeper } from "../src/AuthAPI";
+import { jwtParser } from "../src/JwtParser";
 
 const authAPI = new AuthAPI(env.host);
-const tokenKeeper = new TokenKeeper(authAPI);
+
+let tokenKeeper: TokenKeeper;
+let refreshToken: string;
+let accessToken: string;
 
 describe(`AuthAPI`, () => {
   it("Initialize AuthAPI", async () => {
     await authAPI.load(env.lang);
   });
   it(`Login`, async () => {
-    const refreshToken = await authAPI.login(env.id, env.password);
-    tokenKeeper.refreshToken = refreshToken;
+    refreshToken = await authAPI.login(env.id, env.password);
     assert(refreshToken);
   }).timeout(3000);
+  it(`Login with keepLoggedin`, async () => {
+    refreshToken = await authAPI.login(env.id, env.password, true);
+    assert(new Date(jwtParser(refreshToken)?.expires).getTime() > Date.now());
+  }).timeout(3000);
   it(`Get access token`, async () => {
-    if (!tokenKeeper.refreshToken) assert(false);
+    if (!refreshToken) assert(false);
 
-    const accessToken = await authAPI.getAccessToken(tokenKeeper.refreshToken);
-    tokenKeeper.accessToken = accessToken;
+    accessToken = await authAPI.getAccessToken(refreshToken);
     assert(accessToken);
   });
   it(`Renew refresh token`, async () => {
-    if (!tokenKeeper.refreshToken) assert(false);
+    if (!refreshToken) assert(false);
 
-    tokenKeeper.refreshToken = await authAPI.renewRefreshToken(tokenKeeper.refreshToken);
-    assert(tokenKeeper.refreshToken);
+    refreshToken = await authAPI.renewRefreshToken(refreshToken);
+    assert(refreshToken);
   });
 });
 describe(`TokenKeeper`, () => {
   let oldRefreshToken: string;
   let oldAccessToken: string;
 
+  it(`Initalize`, () => {
+    tokenKeeper = new TokenKeeper(authAPI, refreshToken, accessToken);
+  });
   it(`Set old tokens`, () => {
     oldRefreshToken = tokenKeeper.refreshToken as string;
     oldAccessToken = tokenKeeper.accessToken as string;

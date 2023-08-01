@@ -24,13 +24,13 @@ describe(`AuthAPI`, () => {
   it(`Get access token`, async () => {
     if (!refreshToken) assert(false);
 
-    accessToken = await authAPI.getAccessToken(refreshToken);
+    accessToken = await authAPI.getAccessToken({ refreshToken: refreshToken });
     assert(accessToken);
   });
   it(`Renew refresh token`, async () => {
     if (!refreshToken) assert(false);
 
-    refreshToken = await authAPI.renewRefreshToken(refreshToken);
+    refreshToken = await authAPI.renewRefreshToken({ refreshToken: refreshToken });
     assert(refreshToken);
   });
 });

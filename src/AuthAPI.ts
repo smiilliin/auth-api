@@ -85,6 +85,7 @@ class AuthAPI extends BaseAPI {
     const headers = {};
     Object.assign(headers, refreshToken ? { Authorization: refreshToken } : {});
     const data = await this.get("/access-token", dataToSend, {
+      credentials: "include",
       headers: headers,
     });
     return data["access-token"];
@@ -102,6 +103,7 @@ class AuthAPI extends BaseAPI {
     const headers = {};
     Object.assign(headers, refreshToken ? { Authorization: refreshToken } : {});
     const data = await this.get("/refresh-token", dataToSend, {
+      credentials: "include",
       headers: headers,
     });
     return data["refresh-token"];

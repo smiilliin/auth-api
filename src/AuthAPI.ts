@@ -83,7 +83,7 @@ class AuthAPI extends BaseAPI {
     Object.assign(dataToSend, keepLoggedin ? { keepLoggedin: keepLoggedin } : {});
 
     const headers = {};
-    Object.assign(headers, refreshToken ? { Authorization: refreshToken } : {});
+    Object.assign(headers, refreshToken ? { Authorization: refreshToken } : { credentials: "include" });
     const data = await this.get("/access-token", dataToSend, {
       credentials: "include",
       headers: headers,
@@ -101,7 +101,7 @@ class AuthAPI extends BaseAPI {
     Object.assign(dataToSend, keepLoggedin ? { keepLoggedin: keepLoggedin } : {});
 
     const headers = {};
-    Object.assign(headers, refreshToken ? { Authorization: refreshToken } : {});
+    Object.assign(headers, refreshToken ? { Authorization: refreshToken } : { credentials: "include" });
     const data = await this.get("/refresh-token", dataToSend, {
       credentials: "include",
       headers: headers,

@@ -30,12 +30,19 @@ class AuthAPI extends BaseAPI {
    * @param keepLoggedin keep logged in
    * @returns Refresh token
    */
-  async login(id: string, password: string, keepLoggedin?: boolean): Promise<string> {
+  async login(
+    id: string,
+    password: string,
+    keepLoggedin?: boolean
+  ): Promise<string> {
     const data = await this.post(
       "/login",
       {
         id: id,
-        password: crypto.createHash("sha256").update(Buffer.from(password, "utf-8")).digest("hex"),
+        password: crypto
+          .createHash("sha256")
+          .update(Buffer.from(password, "utf-8"))
+          .digest("hex"),
         keepLoggedin: keepLoggedin,
       },
       {
@@ -55,12 +62,20 @@ class AuthAPI extends BaseAPI {
    * @param keepLoggedin keep logged in
    * @returns Refresh token
    */
-  async signup(id: string, password: string, g_response: string, keepLoggedin?: boolean): Promise<string> {
+  async signup(
+    id: string,
+    password: string,
+    g_response: string,
+    keepLoggedin?: boolean
+  ): Promise<string> {
     const data = await this.post(
       "/signup",
       {
         id: id,
-        password: crypto.createHash("sha256").update(Buffer.from(password, "utf-8")).digest("hex"),
+        password: crypto
+          .createHash("sha256")
+          .update(Buffer.from(password, "utf-8"))
+          .digest("hex"),
         g_response: g_response,
         keepLoggedin: keepLoggedin,
       },
@@ -78,12 +93,23 @@ class AuthAPI extends BaseAPI {
    * @param refreshToken Refresh token
    * @returns Access token
    */
-  async getAccessToken({ refreshToken, keepLoggedin }: IGetAccessToken): Promise<string> {
+  async getAccessToken({
+    refreshToken,
+    keepLoggedin,
+  }: IGetAccessToken): Promise<string> {
     const dataToSend = {};
-    Object.assign(dataToSend, keepLoggedin ? { keepLoggedin: keepLoggedin } : {});
+    Object.assign(
+      dataToSend,
+      keepLoggedin ? { keepLoggedin: keepLoggedin } : {}
+    );
 
     const headers = {};
-    Object.assign(headers, refreshToken ? { Authorization: refreshToken } : { credentials: "include" });
+    Object.assign(
+      headers,
+      refreshToken
+        ? { Authorization: refreshToken }
+        : { credentials: "include" }
+    );
     const data = await this.get("/access-token", dataToSend, {
       credentials: "include",
       headers: headers,
@@ -96,12 +122,23 @@ class AuthAPI extends BaseAPI {
    * @param keepLoggedin keep logged in
    * @returns Renewed refresh token
    */
-  async renewRefreshToken({ refreshToken, keepLoggedin }: IRenewRefreshToken): Promise<string> {
+  async renewRefreshToken({
+    refreshToken,
+    keepLoggedin,
+  }: IRenewRefreshToken): Promise<string> {
     const dataToSend = {};
-    Object.assign(dataToSend, keepLoggedin ? { keepLoggedin: keepLoggedin } : {});
+    Object.assign(
+      dataToSend,
+      keepLoggedin ? { keepLoggedin: keepLoggedin } : {}
+    );
 
     const headers = {};
-    Object.assign(headers, refreshToken ? { Authorization: refreshToken } : { credentials: "include" });
+    Object.assign(
+      headers,
+      refreshToken
+        ? { Authorization: refreshToken }
+        : { credentials: "include" }
+    );
     const data = await this.get("/refresh-token", dataToSend, {
       credentials: "include",
       headers: headers,
@@ -142,10 +179,17 @@ class TokenKeeper {
   ) {
     const refreshRefreshToken = async () => {
       try {
-        const refreshTokenPayload = jwtParser(this.refreshToken) as IRefreshToken;
+        const refreshTokenPayload = jwtParser(
+          this.refreshToken
+        ) as IRefreshToken;
 
-        if (refreshTokenPayload && refreshTokenPayload.expires - Date.now() < refreshInterval) {
-          this.refreshToken = await this.authAPI.renewRefreshToken({ refreshToken: this.refreshToken });
+        if (
+          refreshTokenPayload &&
+          refreshTokenPayload.expires - Date.now() < refreshInterval
+        ) {
+          this.refreshToken = await this.authAPI.renewRefreshToken({
+            refreshToken: this.refreshToken,
+          });
           if (this.watchRefreshToken) this.watchRefreshToken(this.refreshToken);
         }
       } catch (err) {
@@ -153,14 +197,22 @@ class TokenKeeper {
       }
     };
 
-    this.refreshInterval = setInterval(refreshRefreshToken, refreshCallInterval);
+    this.refreshInterval = setInterval(
+      refreshRefreshToken,
+      refreshCallInterval
+    );
 
     const refreshAccessToken = async () => {
       try {
         const accessTokenPayload = jwtParser(this.accessToken) as IAccessToken;
 
-        if (accessTokenPayload && accessTokenPayload.expires - Date.now() < accessInterval) {
-          this.accessToken = await this.authAPI.getAccessToken({ refreshToken: this.refreshToken });
+        if (
+          accessTokenPayload &&
+          accessTokenPayload.expires - Date.now() < accessInterval
+        ) {
+          this.accessToken = await this.authAPI.getAccessToken({
+            refreshToken: this.refreshToken,
+          });
           if (this.watchAccessToken) this.watchAccessToken(this.accessToken);
         }
       } catch (err) {
@@ -169,9 +221,6 @@ class TokenKeeper {
     };
 
     this.accessInterval = setInterval(refreshAccessToken, accessCallInterval);
-
-    await refreshRefreshToken();
-    await refreshAccessToken();
   }
   release() {
     if (this.refreshInterval) clearInterval(this.refreshInterval);
